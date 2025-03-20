@@ -49,6 +49,9 @@ jobs:
         with:
           go-version: stable
 
+      - name: Download Dependencies
+        run: go mod tidy
+
       - name: Build Binary
         run: |
           GOOS=${{ matrix.GOOS }} GOARCH=${{ matrix.GOARCH }} go build -o faf-pioneer-${{ matrix.GOOS }}-${{ matrix.GOARCH }}${{ matrix.EXT }}
