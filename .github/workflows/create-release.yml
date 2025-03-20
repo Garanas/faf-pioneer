@@ -19,9 +19,12 @@ on:
 
 # Recommended permissions, see also:
 # - https://github.com/actions/setup-go?tab=readme-ov-file#recommended-permissions
+#
+# It is set to write to also allow us to create a release.
 
 permissions:
-  contents: read 
+  contents: write 
+
 
 jobs:
   build:
