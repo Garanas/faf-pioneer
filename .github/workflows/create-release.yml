@@ -20,9 +20,24 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+        include:
+          - os: ubuntu-latest
+            GOOS: linux
+            GOARCH: amd64
+            EXT: ""
+          - os: windows-latest
+            GOOS: windows
+            GOARCH: amd64
+            EXT: ".exe"
+          - os: macos-latest
+            GOOS: darwin
+            GOARCH: amd64
+            EXT: ""
 
     steps:
-
       # We need full git history so that the build process can embed it
       - name: Checkout Repository
         uses: actions/checkout@v4
@@ -34,20 +49,15 @@ jobs:
         with:
           go-version: stable
 
-      - name: Download Dependencies
-        run: go mod tidy
+      - name: Build Binary
+        run: |
+          GOOS=${{ matrix.GOOS }} GOARCH=${{ matrix.GOARCH }} go build -o faf-pioneer-${{ matrix.GOOS }}-${{ matrix.GOARCH }}${{ matrix.EXT }}
 
-      - name: Run Cross-Compile Script
-        run: chmod +x cross-compile.sh && ./cross-compile.sh
-
-      - name: Upload Artifacts
+      - name: Upload Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: build-artifacts
-          path: |
-            faf-pioneer-linux-amd64
-            faf-pioneer-darwin-arm64
-            faf-pioneer-windows-x64
+          name: faf-pioneer-${{ matrix.GOOS }}-${{ matrix.GOARCH }}
+          path: faf-pioneer-${{ matrix.GOOS }}-${{ matrix.GOARCH }}${{ matrix.EXT }}
 
   release:
     needs: build
