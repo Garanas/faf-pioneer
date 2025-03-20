@@ -1,0 +1,77 @@
+name: Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      release_type:
+        description: 'Release Type'
+        required: true
+        type: choice
+        default: "Alpha"
+        options:
+          - "Production"
+          - "Alpha"
+      version_override:
+        description: 'Version Override'
+        required: false
+        type: string
+        default: ""
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: stable
+
+      - name: Download Dependencies
+        run: go mod tidy
+
+      - name: Run Cross-Compile Script
+        run: chmod +x cross-compile.sh && ./cross-compile.sh
+
+      - name: Upload Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-artifacts
+          path: |
+            faf-pioneer-linux-amd64
+            faf-pioneer-darwin-arm64
+            faf-pioneer-windows-x64
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Download Artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: Set Version
+        id: set_version
+        run: |
+          if [[ -n "${{ github.event.inputs.version_override }}" ]]; then
+            echo "VERSION=${{ github.event.inputs.version_override }}" >> $GITHUB_ENV
+          else
+            echo "VERSION=$(git describe --tags --always)" >> $GITHUB_ENV
+          fi
+
+      - name: Create GitHub Release
+        uses: ncipollo/release-action@v1
+        with:
+          tag: ${{ env.VERSION }}
+          name: "Release ${{ env.VERSION }}"
+          body: "Release of version ${{ env.VERSION }} (${{ github.event.inputs.release_type }})"
+          draft: true
+          prerelease: ${{ github.event.inputs.release_type == 'Alpha' }}
+          artifacts: "artifacts/*/*"
