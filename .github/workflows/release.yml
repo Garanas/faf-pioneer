@@ -1,0 +1,58 @@
+name: Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      release_type:
+        description: "Release Type"
+        required: true
+        type: choice
+        default: "Alpha"
+        options:
+          - "Production"
+          - "Alpha"
+      version_override:
+        description: "Version Override"
+        required: false
+        type: string
+        default: ""
+
+permissions:
+  # It is set to write to also allow us to create a release.
+  contents: write
+
+jobs:
+  build:
+    uses: ./.github/workflows/build.yml
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Download Artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: Set Version
+        id: set_version
+        run: |
+          if [[ -n "${{ github.event.inputs.version_override }}" ]]; then
+            echo "VERSION=${{ github.event.inputs.version_override }}" >> $GITHUB_ENV
+          else
+            echo "VERSION=$(git describe --tags --always)" >> $GITHUB_ENV
+          fi
+
+      - name: Create GitHub Release
+        uses: ncipollo/release-action@v1
+        with:
+          tag: ${{ env.VERSION }}
+          name: "Release ${{ env.VERSION }}"
+          draft: true
+          generateReleaseNotes: true
+          prerelease: ${{ github.event.inputs.release_type == 'Alpha' }}
+          artifacts: "artifacts/*/*"
+          artifactErrorsFailBuild: true
