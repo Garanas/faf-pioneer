@@ -17,6 +17,12 @@ on:
         type: string
         default: ""
 
+# Recommended permissions, see also:
+# - https://github.com/actions/setup-go?tab=readme-ov-file#recommended-permissions
+
+permissions:
+  contents: read 
+
 jobs:
   build:
     runs-on: ubuntu-latest
