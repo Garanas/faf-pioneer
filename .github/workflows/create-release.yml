@@ -53,14 +53,21 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@v5
         with:
-          go-version: stable
+          # Flag to enable caching of dependencies
+          cache: true
+
+          # Use the same version of Go as defined by the project
+          go-version-file: go.mod
+
+          # Target architecture that we want to compile to
+          architecture: ${{ matrix.GOARCH }}
 
       - name: Download Dependencies
         run: go mod tidy
 
       - name: Build Binary
         run: |
-          GOOS=${{ matrix.GOOS }} GOARCH=${{ matrix.GOARCH }} go build -o faf-pioneer-${{ matrix.GOOS }}-${{ matrix.GOARCH }}${{ matrix.EXT }}
+          GOOS=${{ matrix.GOOS }} go build -o faf-pioneer-${{ matrix.GOOS }}-${{ matrix.GOARCH }}${{ matrix.EXT }}
 
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
