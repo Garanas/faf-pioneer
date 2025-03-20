@@ -1,4 +1,4 @@
-name: Release
+name: Build
 
 # Recommended permissions, see also:
 # - https://github.com/actions/setup-go?tab=readme-ov-file#recommended-permissions
