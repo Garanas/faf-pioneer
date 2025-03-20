@@ -101,7 +101,8 @@ jobs:
         with:
           tag: ${{ env.VERSION }}
           name: "Release ${{ env.VERSION }}"
-          body: "Release of version ${{ env.VERSION }} (${{ github.event.inputs.release_type }})"
           draft: true
+          generateReleaseNotes: true
           prerelease: ${{ github.event.inputs.release_type == 'Alpha' }}
           artifacts: "artifacts/*/*"
+          artifactErrorsFailBuild: true
