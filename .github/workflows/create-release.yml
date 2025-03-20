@@ -22,8 +22,12 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+
+      # We need full git history so that the build process can embed it
       - name: Checkout Repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Set up Go
         uses: actions/setup-go@v5
